@@ -471,7 +471,7 @@ export default function App() {
           </header>
 
           {/* Search Module */}
-          <div className="max-w-3xl mx-auto mb-6">
+          <div className="max-w-3xl mx-auto mb-7">
             <SearchBar onSearch={handleSearch} isLoading={loading} themeMode={themeMode} />
           </div>
 
