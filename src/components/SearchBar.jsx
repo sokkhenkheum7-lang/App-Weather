@@ -1,18 +1,160 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronRight, MapPin, X, Command } from 'lucide-react';
+import { weatherApi } from '../services/weatherApi';
 
-const locationSuggestionsList = [
-  { city: "Phnom Penh", region: "Chaktomuk", country: "Cambodia", display: "Phnom Penh, Cambodia" },
-  { city: "Siem Reap", region: "Siem Reap Province", country: "Cambodia", display: "Siem Reap, Cambodia" },
-  { city: "Sihanoukville", region: "Preah Sihanouk Province", country: "Cambodia", display: "Sihanoukville, Cambodia" },
-  { city: "Battambang", region: "Battambang Province", country: "Cambodia", display: "Battambang, Cambodia" },
-  { city: "Kampot", region: "Kampot Province", country: "Cambodia", display: "Kampot, Cambodia" },
-  { city: "London", region: "Greater London", country: "United Kingdom", display: "London, Greater London, UK" },
-  { city: "Paris", region: "Île-de-France", country: "France", display: "Paris, Île-de-France, France" },
-  { city: "New York", region: "New York State", country: "United States", display: "New York, NY, USA" },
+// countries.js
+export const locationSuggestionsList = [
+  // ==========================================
+  // CAMBODIA (All 25 Provinces & Municipalities)
+  // ==========================================
+  { city: "Phnom Penh", region: "Phnom Penh", country: "Cambodia", display: "Phnom Penh, Cambodia" },
+  { city: "Siem Reap", region: "Siem Reap", country: "Cambodia", display: "Siem Reap, Cambodia" },
+  { city: "Battambang", region: "Battambang", country: "Cambodia", display: "Battambang, Cambodia" },
+  { city: "Sihanoukville", region: "Preah Sihanouk", country: "Cambodia", display: "Sihanoukville, Preah Sihanouk, Cambodia" },
+  { city: "Kampot", region: "Kampot", country: "Cambodia", display: "Kampot, Cambodia" },
+  { city: "Kampong Cham", region: "Kampong Cham", country: "Cambodia", display: "Kampong Cham, Cambodia" },
+  { city: "Kampong Chhnang", region: "Kampong Chhnang", country: "Cambodia", display: "Kampong Chhnang, Cambodia" },
+  { city: "Kampong Speu", region: "Kampong Speu", country: "Cambodia", display: "Kampong Speu, Cambodia" },
+  { city: "Kampong Thom", region: "Kampong Thom", country: "Cambodia", display: "Kampong Thom, Cambodia" },
+  { city: "Kandal", region: "Kandal", country: "Cambodia", display: "Kandal, Cambodia" },
+  { city: "Kep", region: "Kep", country: "Cambodia", display: "Kep, Cambodia" },
+  { city: "Koh Kong", region: "Koh Kong", country: "Cambodia", display: "Koh Kong, Cambodia" },
+  { city: "Kratie", region: "Kratie", country: "Cambodia", display: "Kratie, Cambodia" },
+  { city: "Mondulkiri", region: "Mondulkiri", country: "Cambodia", display: "Mondulkiri, Cambodia" },
+  { city: "Oddar Meanchey", region: "Oddar Meanchey", country: "Cambodia", display: "Oddar Meanchey, Cambodia" },
+  { city: "Pailin", region: "Pailin", country: "Cambodia", display: "Pailin, Cambodia" },
+  { city: "Preah Vihear", region: "Preah Vihear", country: "Cambodia", display: "Preah Vihear, Cambodia" },
+  { city: "Prey Veng", region: "Prey Veng", country: "Cambodia", display: "Prey Veng, Cambodia" },
+  { city: "Pursat", region: "Pursat", country: "Cambodia", display: "Pursat, Cambodia" },
+  { city: "Ratanakiri", region: "Ratanakiri", country: "Cambodia", display: "Ratanakiri, Cambodia" },
+  { city: "Stung Treng", region: "Stung Treng", country: "Cambodia", display: "Stung Treng, Cambodia" },
+  { city: "Svay Rieng", region: "Svay Rieng", country: "Cambodia", display: "Svay Rieng, Cambodia" },
+  { city: "Takeo", region: "Takeo", country: "Cambodia", display: "Takeo, Cambodia" },
+  { city: "Tboung Khmum", region: "Tboung Khmum", country: "Cambodia", display: "Tboung Khmum, Cambodia" },
+  { city: "Banteay Meanchey", region: "Banteay Meanchey", country: "Cambodia", display: "Banteay Meanchey, Cambodia" },
+
+  // ==========================================
+  // ASIA & REGIONAL HUBS
+  // ==========================================
+  { city: "Bangkok", region: "Central Thailand", country: "Thailand", display: "Bangkok, Thailand" },
+  { city: "Chiang Mai", region: "Chiang Mai", country: "Thailand", display: "Chiang Mai, Thailand" },
+  { city: "Phuket", region: "Phuket", country: "Thailand", display: "Phuket, Thailand" },
+  { city: "Pattaya", region: "Chon Buri", country: "Thailand", display: "Pattaya, Chon Buri, Thailand" },
+  { city: "Surat Thani", region: "Surat Thani", country: "Thailand", display: "Surat Thani (Koh Samui), Thailand" },
+  { city: "Krabi", region: "Krabi", country: "Thailand", display: "Krabi, Thailand" },
+  { city: "Hat Yai", region: "Songkhla", country: "Thailand", display: "Hat Yai, Songkhla, Thailand" },
+
+  // ==========================================
+  // VIETNAM (Major Provinces & Municipalities)
+  // ==========================================
+  { city: "Hanoi", region: "Red River Delta", country: "Vietnam", display: "Hanoi, Vietnam" },
+  { city: "Ho Chi Minh City", region: "Southeast", country: "Vietnam", display: "Ho Chi Minh City, Vietnam" },
+  { city: "Da Nang", region: "South Central Coast", country: "Vietnam", display: "Da Nang, Vietnam" },
+  { city: "Nha Trang", region: "Khanh Hoa", country: "Vietnam", display: "Nha Trang, Khanh Hoa, Vietnam" },
+  { city: "Hai Phong", region: "Red River Delta", country: "Vietnam", display: "Hai Phong, Vietnam" },
+  { city: "Can Tho", region: "Mekong Delta", country: "Vietnam", display: "Can Tho, Vietnam" },
+
+  // ==========================================
+  // LAOS & MYANMAR
+  // ==========================================
+  { city: "Vientiane", region: "Prefecture", country: "Laos", display: "Vientiane, Laos" },
+  { city: "Luang Prabang", region: "Luang Prabang", country: "Laos", display: "Luang Prabang, Laos" },
+  { city: "Pakse", region: "Champasak", country: "Laos", display: "Pakse, Champasak, Laos" },
+  { city: "Yangon", region: "Yangon Region", country: "Myanmar", display: "Yangon, Myanmar" },
+  { city: "Mandalay", region: "Mandalay Region", country: "Myanmar", display: "Mandalay, Myanmar" },
+
+  // ==========================================
+  // MALAYSIA & SINGAPORE
+  // ==========================================
+  { city: "Kuala Lumpur", region: "Federal Territory", country: "Malaysia", display: "Kuala Lumpur, Malaysia" },
+  { city: "Penang", region: "Penang", country: "Malaysia", display: "George Town, Penang, Malaysia" },
+  { city: "Johor Bahru", region: "Johor", country: "Malaysia", display: "Johor Bahru, Johor, Malaysia" },
+  { city: "Kota Kinabalu", region: "Sabah", country: "Malaysia", display: "Kota Kinabalu, Sabah, Malaysia" },
+  { city: "Kuching", region: "Sarawak", country: "Malaysia", display: "Kuching, Sarawak, Malaysia" },
+  { city: "Singapore", region: "Central Region", country: "Singapore", display: "Singapore" },
+
+  // ==========================================
+  // INDONESIA & PHILIPPINES
+  // ==========================================
+  { city: "Jakarta", region: "Java", country: "Indonesia", display: "Jakarta, Indonesia" },
+  { city: "Denpasar", region: "Bali Province", country: "Indonesia", display: "Bali, Indonesia" },
+  { city: "Surabaya", region: "East Java", country: "Indonesia", display: "Surabaya, East Java, Indonesia" },
+  { city: "Medan", region: "North Sumatra", country: "Indonesia", display: "Medan, North Sumatra, Indonesia" },
+  { city: "Manila", region: "Metro Manila", country: "Philippines", display: "Manila, Philippines" },
+  { city: "Cebu City", region: "Central Visayas", country: "Philippines", display: "Cebu City, Philippines" },
+  { city: "Davao City", region: "Davao Region", country: "Philippines", display: "Davao City, Philippines" },
+
+  // ==========================================
+  // EAST ASIA
+  // ==========================================
   { city: "Tokyo", region: "Kanto", country: "Japan", display: "Tokyo, Kanto, Japan" },
+  { city: "Osaka", region: "Kansai", country: "Japan", display: "Osaka, Japan" },
+  { city: "Kyoto", region: "Kansai", country: "Japan", display: "Kyoto, Japan" },
+  { city: "Sapporo", region: "Hokkaido", country: "Japan", display: "Sapporo, Hokkaido, Japan" },
+  { city: "Seoul", region: "Sudogwon", country: "South Korea", display: "Seoul, South Korea" },
+  { city: "Busan", region: "Yeongnam", country: "South Korea", display: "Busan, South Korea" },
+  { city: "Beijing", region: "Hebei", country: "China", display: "Beijing, China" },
+  { city: "Shanghai", region: "Shanghai", country: "China", display: "Shanghai, China" },
+  { city: "Guangzhou", region: "Guangdong", country: "China", display: "Guangzhou, Guangdong, China" },
+  { city: "Shenzhen", region: "Guangdong", country: "China", display: "Shenzhen, Guangdong, China" },
+  { city: "Hong Kong", region: "Hong Kong", country: "China", display: "Hong Kong" },
+  { city: "Taipei", region: "Northern Taiwan", country: "Taiwan", display: "Taipei, Taiwan" },
+
+  // ==========================================
+  // UNITED STATES (Major State Hubs)
+  // ==========================================
+  { city: "New York", region: "NY State", country: "United States", display: "New York, NY, USA" },
+  { city: "Los Angeles", region: "California", country: "United States", display: "Los Angeles, CA, USA" },
+  { city: "San Francisco", region: "California", country: "United States", display: "San Francisco, CA, USA" },
+  { city: "Chicago", region: "Illinois", country: "United States", display: "Chicago, IL, USA" },
+  { city: "Houston", region: "Texas", country: "United States", display: "Houston, TX, USA" },
+  { city: "Miami", region: "Florida", country: "United States", display: "Miami, FL, USA" },
+  { city: "Seattle", region: "Washington", country: "United States", display: "Seattle, WA, USA" },
+  { city: "Washington D.C.", region: "District of Columbia", country: "United States", display: "Washington D.C., USA" },
+
+  // ==========================================
+  // CANADA & AMERICA (LATIN)
+  // ==========================================
+  { city: "Toronto", region: "Ontario", country: "Canada", display: "Toronto, ON, Canada" },
+  { city: "Vancouver", region: "British Columbia", country: "Canada", display: "Vancouver, BC, Canada" },
+  { city: "Montreal", region: "Quebec", country: "Canada", display: "Montreal, QC, Canada" },
+  { city: "Mexico City", region: "Federal District", country: "Mexico", display: "Mexico City, Mexico" },
+  { city: "São Paulo", region: "São Paulo State", country: "Brazil", display: "São Paulo, Brazil" },
+  { city: "Rio de Janeiro", region: "Rio de Janeiro", country: "Brazil", display: "Rio de Janeiro, Brazil" },
+  { city: "Buenos Aires", region: "Capital Federal", country: "Argentina", display: "Buenos Aires, Argentina" },
+
+  // ==========================================
+  // EUROPE (Major Provinces & Capitals)
+  // ==========================================
+  { city: "London", region: "Greater London", country: "United Kingdom", display: "London, UK" },
+  { city: "Manchester", region: "Greater Manchester", country: "United Kingdom", display: "Manchester, UK" },
+  { city: "Paris", region: "Île-de-France", country: "France", display: "Paris, France" },
+  { city: "Lyon", region: "Auvergne-Rhône-Alpes", country: "France", display: "Lyon, France" },
+  { city: "Berlin", region: "Berlin State", country: "Germany", display: "Berlin, Germany" },
+  { city: "Munich", region: "Bavaria", country: "Germany", display: "Munich, Bavaria, Germany" },
+  { city: "Rome", region: "Lazio", country: "Italy", display: "Rome, Italy" },
+  { city: "Milan", region: "Lombardy", country: "Italy", display: "Milan, Italy" },
+  { city: "Madrid", region: "Community of Madrid", country: "Spain", display: "Madrid, Spain" },
+  { city: "Barcelona", region: "Catalonia", country: "Spain", display: "Barcelona, Catalonia, Spain" },
+  { city: "Amsterdam", region: "North Holland", country: "Netherlands", display: "Amsterdam, Netherlands" },
+  { city: "Brussels", region: "Brussels-Capital", country: "Belgium", display: "Brussels, Belgium" },
+  { city: "Vienna", region: "Vienna State", country: "Austria", display: "Vienna, Austria" },
+  { city: "Athens", region: "Attica", country: "Greece", display: "Athens, Greece" },
+  { city: "Lisbon", region: "Lisbon District", country: "Portugal", display: "Lisbon, Portugal" },
+  { city: "Stockholm", region: "Stockholm County", country: "Sweden", display: "Stockholm, Sweden" },
+
+  // ==========================================
+  // OCEANIA, SOUTH ASIA & MEA
+  // ==========================================
   { city: "Sydney", region: "New South Wales", country: "Australia", display: "Sydney, NSW, Australia" },
-  { city: "Bangkok", region: "Krung Thep Maha Nakhon", country: "Thailand", display: "Bangkok, Thailand" }
+  { city: "Melbourne", region: "Victoria", country: "Australia", display: "Melbourne, VIC, Australia" },
+  { city: "Brisbane", region: "Queensland", country: "Australia", display: "Brisbane, QLD, Australia" },
+  { city: "Auckland", region: "North Island", country: "New Zealand", display: "Auckland, New Zealand" },
+  { city: "New Delhi", region: "Delhi", country: "India", display: "New Delhi, India" },
+  { city: "Mumbai", region: "Maharashtra", country: "India", display: "Mumbai, India" },
+  { city: "Dubai", region: "Emirate of Dubai", country: "United Arab Emirates", display: "Dubai, UAE" },
+  { city: "Cairo", region: "Greater Cairo", country: "Egypt", display: "Cairo, Egypt" },
+  { city: "Cape Town", region: "Western Cape", country: "South Africa", display: "Cape Town, South Africa" }
 ];
 
 export default function SearchBar({ onSearch, isLoading, themeMode }) {

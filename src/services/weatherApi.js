@@ -1,123 +1,119 @@
-// const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-// const BASE_URL = "https://api.openweathermap.org/data/2.5";
+const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+const BASE_URL = "https://api.openweathermap.org/data/2.5";
+const GEO_URL = "https://api.openweathermap.org/geo/1.0";
 
-// export const weatherApi = {
-//   // Current weather by city
-//   async getWeatherByCity(city, units = "metric") {
-//     const response = await fetch(
-//   `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=${units}`
-// );
+if (!API_KEY) {
+  throw new Error("❌ Missing VITE_OPENWEATHER_API_KEY in .env file");
+}
 
-//     const data = await response.json();
+/* =========================
+   Base Fetch Helper
+========================= */
+async function fetchWeather(url) {
+  const res = await fetch(url);
+  const data = await res.json();
 
-//     if (!response.ok) {
-//       throw new Error(data.message || "Failed to fetch weather");
-//     }
+  if (!res.ok) {
+    throw new Error(data.message || "❌ Weather API request failed");
+  }
 
-//     return data;
-//   },
+  return data;
+}
 
-//   // Forecast by city
-// async getForecast(city, units = "metric") {
-//   const response = await fetch(
-//     `${BASE_URL}/forecast?q=${encodeURIComponent(
-//       city.trim()
-//     )}&units=${units}&appid=${API_KEY}`
-//   );
+/* =========================
+   Helpers
+========================= */
+const encode = (value) => encodeURIComponent(value.trim());
 
-//   const data = await response.json();
+const groupForecast = (list) => {
+  const grouped = {};
 
-//   if (!response.ok) {
-//     throw new Error(data.message || "Failed to fetch forecast");
-//   }
+  list.forEach((item) => {
+    const date = item.dt_txt.split(" ")[0];
 
-//   const grouped = {};
+    if (!grouped[date]) {
+      grouped[date] = {
+        dt: item.dt,
+        temps: [],
+        weather: item.weather,
+        humidity: item.main.humidity,
+        wind_speed: item.wind.speed,
+      };
+    }
 
-//   data.list.forEach((item) => {
-//     const date = item.dt_txt.split(" ")[0];
+    grouped[date].temps.push(item.main.temp);
 
-//     if (!grouped[date]) {
-//       grouped[date] = {
-//         dt: item.dt,
-//         temps: [],
-//         weather: item.weather,
-//       };
-//     }
+    // Prefer midday forecast
+    if (item.dt_txt.includes("12:00:00")) {
+      grouped[date].weather = item.weather;
+      grouped[date].dt = item.dt;
+    }
+  });
 
-//     grouped[date].temps.push(item.main.temp);
+  return Object.values(grouped)
+    .map((day) => ({
+      dt: day.dt,
+      temp: {
+        min: Math.min(...day.temps),
+        max: Math.max(...day.temps),
+      },
+      weather: day.weather,
+      humidity: day.humidity,
+      wind_speed: day.wind_speed,
+    }))
+    .slice(0, 5);
+};
 
-//     if (item.dt_txt.includes("12:00:00")) {
-//       grouped[date].weather = item.weather;
-//       grouped[date].dt = item.dt;
-//     }
-//   });
+/* =========================
+   API
+========================= */
+export const weatherApi = {
+  // 🔍 Search locations worldwide
+  async searchLocations(query) {
+    if (!query.trim()) return [];
 
-//   return Object.values(grouped)
-//     .map((day) => ({
-//       dt: day.dt,
-//       temp: {
-//         min: Math.min(...day.temps),
-//         max: Math.max(...day.temps),
-//       },
-//       weather: day.weather,
-//     }))
-//     .slice(0, 5);
-// },
+    const url = `${GEO_URL}/direct?q=${encode(query)}&limit=5&appid=${API_KEY}`;
 
-//   // Current weather by coordinates
-//   async getWeatherByCoords(lat, lon, units = "metric") {
-//     const response = await fetch(
-//       `${BASE_URL}/weather?lat=${lat}&lon=${lon}&units=${units}&appid=${API_KEY}`
-//     );
+    try {
+      const data = await fetchWeather(url);
 
-//     const data = await response.json();
+      return data.map((item) => ({
+        city: item.name,
+        region: item.state || "",
+        country: item.country,
+        display: `${item.name}${item.state ? `, ${item.state}` : ""}, ${
+          item.country
+        }`,
+      }));
+    } catch (error) {
+      console.error("Geocoding Error:", error);
+      return [];
+    }
+  },
 
-//     if (!response.ok) {
-//       throw new Error(
-//         data.message || "Failed to fetch weather for current location"
-//       );
-//     }
+  // 🌤️ Current weather by city
+  async getWeatherByCity(city, units = "metric") {
+    const url = `${BASE_URL}/weather?q=${encode(city)}&appid=${API_KEY}&units=${units}`;
+    return fetchWeather(url);
+  },
 
-//     return data;
-//   },
+  // 📅 Forecast by city
+  async getForecast(city, units = "metric") {
+    const url = `${BASE_URL}/forecast?q=${encode(city)}&units=${units}&appid=${API_KEY}`;
+    const data = await fetchWeather(url);
+    return groupForecast(data.list);
+  },
 
-//   // Forecast by coordinates
-//   async getForecastByCoords(lat, lon, units = "metric") {
-//     const response = await fetch(
-//       `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&units=${units}&appid=${API_KEY}`
-//     );
+  // 📍 Weather by coordinates
+  async getWeatherByCoords(lat, lon, units = "metric") {
+    const url = `${BASE_URL}/weather?lat=${lat}&lon=${lon}&units=${units}&appid=${API_KEY}`;
+    return fetchWeather(url);
+  },
 
-//     const data = await response.json();
-
-//     if (!response.ok) {
-//       throw new Error(
-//         data.message || "Failed to fetch forecast for current location"
-//       );
-//     }
-
-//     const dailyForecasts = [];
-//     const seenDates = new Set();
-
-//     data.list.forEach((item) => {
-//       const dateStr = new Date(item.dt * 1000).toDateString();
-
-//       if (!seenDates.has(dateStr)) {
-//         seenDates.add(dateStr);
-
-//         dailyForecasts.push({
-//           dt: item.dt,
-//           temp: {
-//             day: item.main.temp,
-//             min: item.main.temp_min,
-//             max: item.main.temp_max,
-//           },
-//           weather: item.weather,
-//           humidity: item.main.humidity,
-//           wind_speed: item.wind.speed,
-//         });
-//       }
-//     });
-
-//     return dailyForecasts.slice(0, 7);
-//   },
-// };
+  // 📍 Forecast by coordinates
+  async getForecastByCoords(lat, lon, units = "metric") {
+    const url = `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&units=${units}&appid=${API_KEY}`;
+    const data = await fetchWeather(url);
+    return groupForecast(data.list);
+  },
+};

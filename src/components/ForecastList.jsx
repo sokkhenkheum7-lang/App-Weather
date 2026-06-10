@@ -1,138 +1,167 @@
 import React from 'react';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export default function ForecastList({ forecastData, unit, themeMode }) {
   if (!forecastData?.length) return null;
 
   const isDark = themeMode === 'dark';
-  const tempUnit = unit === 'metric' ? '°C' : '°F';
 
+  // Enhanced styles including unique gradients and thematic colors per weather type
   const getWeatherStyle = (main) => {
     switch (main?.toLowerCase()) {
       case 'clear':
-        return { accent: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
+        return { 
+          accent: 'text-amber-500 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+          gradient: 'from-amber-500/10 to-orange-500/0 dark:from-amber-500/5 dark:to-transparent'
+        };
       case 'clouds':
-        return { accent: 'text-slate-400 bg-slate-400/10 border-slate-400/20' };
+        return { 
+          accent: 'text-slate-500 dark:text-slate-400 bg-slate-500/10 border-slate-500/20',
+          gradient: 'from-slate-400/10 to-slate-500/0 dark:from-slate-400/5 dark:to-transparent'
+        };
       case 'rain':
       case 'drizzle':
-        return { accent: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+        return { 
+          accent: 'text-sky-500 dark:text-sky-400 bg-sky-500/10 border-sky-500/20',
+          gradient: 'from-sky-500/10 to-indigo-500/0 dark:from-sky-500/5 dark:to-transparent'
+        };
       case 'thunderstorm':
-        return { accent: 'text-purple-400 bg-purple-500/10 border-purple-500/20' };
+        return { 
+          accent: 'text-purple-500 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
+          gradient: 'from-purple-500/10 to-pink-500/0 dark:from-purple-500/5 dark:to-transparent'
+        };
       case 'snow':
-        return { accent: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20' };
+        return { 
+          accent: 'text-cyan-500 dark:text-cyan-400 bg-cyan-500/10 border-cyan-400/20',
+          gradient: 'from-cyan-400/10 to-blue-500/0 dark:from-cyan-400/5 dark:to-transparent'
+        };
       default:
-        return { accent: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' };
+        return { 
+          accent: 'text-emerald-500 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+          gradient: 'from-emerald-500/10 to-teal-500/0 dark:from-emerald-500/5 dark:to-transparent'
+        };
     }
   };
 
-  const reorderFromTomorrow = (data) => {
-    if (!data?.length) return [];
-    const today = new Date().getDay();
-    const startIndex = data.findIndex((day) => {
-      const dayIndex = new Date(day.dt * 1000).getDay();
-      return dayIndex !== today;
-    });
-    if (startIndex === -1) return data;
-    return [...data.slice(startIndex), ...data.slice(0, startIndex)];
-  };
-
-  const sortedData = reorderFromTomorrow(forecastData).slice(0, 7);
+  const sortedData = [...forecastData].sort((a, b) => a.dt - b.dt).slice(0, 7);
 
   return (
-    <div className="w-full relative mt-8">
-      {/* Structural Minimalist Ambient Glow */}
-      <div className={`absolute -right-24 -bottom-24 w-72 h-72 rounded-full blur-[120px] pointer-events-none opacity-15 transition-all duration-1000 ${
-        isDark ? 'bg-indigo-500' : 'bg-emerald-300'
+    /* Contained and centered layout block */
+    <div className="w-full max-w-5xl mx-auto relative mt-4 select-none px-1">
+      {/* Background Ambient Orbs */}
+      <div className={`absolute -right-24 -top-24 w-80 h-80 rounded-full blur-[140px] pointer-events-none opacity-20 transition-all duration-1000 ${
+        isDark ? 'bg-indigo-500/40' : 'bg-emerald-300/50'
+      }`} />
+      <div className={`absolute -left-24 -bottom-24 w-80 h-80 rounded-full blur-[140px] pointer-events-none opacity-10 transition-all duration-1000 ${
+        isDark ? 'bg-purple-500/30' : 'bg-sky-200/40'
       }`} />
 
-      {/* Main Base Card Shell */}
-      <div className={`relative rounded-[32px] p-6 md:p-8 transition-all duration-500 border backdrop-blur-xl ${
+      {/* Main Container Card */}
+      <div className={`relative rounded-[32px] p-5 md:p-6 transition-all duration-500 border backdrop-blur-2xl ${
         isDark 
-          ? 'bg-slate-950/20 text-white border-white/[0.06] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)]' 
-          : 'bg-white/60 text-slate-900 border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]'
+          ? 'bg-slate-900/40 text-slate-100 border-white/[0.06] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.7)]' 
+          : 'bg-white/70 text-slate-800 border-slate-200/60 shadow-[0_20px_50px_rgba(15,23,42,0.04)]'
       }`}>
         
-        {/* Section Typography Header */}
-        <div className="flex items-center gap-3.5 mb-8 pb-4 border-b border-solid border-current/[0.06]">
-          <div className={`p-2.5 rounded-xl flex items-center justify-center shrink-0 border ${
-            isDark ? 'bg-white/5 text-emerald-400 border-white/[0.05]' : 'bg-white text-emerald-600 border-slate-100 shadow-sm'
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-solid border-slate-500/[0.08]">
+          <div className="flex items-center gap-3.5">
+            <div className={`p-2 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+              isDark ? 'bg-white/5 text-emerald-400 border-white/[0.05]' : 'bg-slate-50 text-emerald-600 border-slate-200/80 shadow-sm'
+            }`}>
+              <CalendarDays size={16} className="animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold tracking-tight">7-Day Forecast</h3>
+              <p className={`text-[11px] font-medium tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Detailed daily weather outlook
+              </p>
+            </div>
+          </div>
+          
+          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+            isDark ? 'bg-slate-800/50 border-slate-700/50 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-600'
           }`}>
-            <CalendarDays size={18} />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold tracking-tight bg-gradient-to-r from-current to-current/80 bg-clip-text">
-              7-Day Forecast
-            </h3>
-            {/* UPDATED: "Daily weather outlook" color changed to clean ocean cyan */}
-            <p className={`text-xs font-semibold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
-              Daily weather outlook
-            </p>
-          </div>
+            7 Days Total
+          </span>
         </div>
 
-        {/* Forecast Auto Grid Matrix Container */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-flow-col lg:auto-cols-fr gap-4 w-full">
+        {/* Forecast Grid Matrix (Optimized column widths for centered presentation) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-flow-col lg:auto-cols-fr gap-3.5 w-full">
           {sortedData.map((day, idx) => {
             const weather = getWeatherStyle(day.weather?.[0]?.main);
             const dateObj = new Date(day.dt * 1000);
+            const isToday = new Date().toDateString() === dateObj.toDateString();
+
+            const maxTemp = Math.round(day.temp?.max ?? day.main?.temp_max ?? 0);
+            const minTemp = Math.round(day.temp?.min ?? day.main?.temp_min ?? 0);
 
             return (
               <div
                 key={idx}
-                className={`relative overflow-hidden rounded-[24px] p-5 transition-all duration-500 flex flex-col items-center justify-between group border border-solid hover:-translate-y-1.5 ${
-                  isDark 
-                    ? 'bg-gradient-to-b from-white/[0.03] to-transparent hover:from-white/[0.06] border-white/[0.04] hover:border-white/[0.1] shadow-lg hover:shadow-2xl' 
-                    : 'bg-gradient-to-b from-white to-slate-50/40 hover:from-white hover:to-slate-50 border-slate-100 hover:border-slate-200 shadow-sm hover:shadow-xl'
+                className={`relative overflow-hidden rounded-[22px] p-4 transition-all duration-500 flex flex-col items-center justify-between group border border-solid hover:-translate-y-1 hover:shadow-xl ${
+                  isToday
+                    ? isDark
+                      ? 'bg-gradient-to-b from-indigo-500/15 via-slate-900/50 to-slate-900/20 border-indigo-500/40 shadow-[0_0_30px_rgba(99,102,241,0.25)] ring-1 ring-indigo-500/30'
+                      : 'bg-gradient-to-b from-indigo-50/70 via-white to-white border-indigo-200 shadow-md ring-1 ring-indigo-100/50'
+                    : isDark 
+                      ? 'bg-gradient-to-b from-white/[0.02] to-transparent hover:border-white/[0.1] border-white/[0.04]' 
+                      : 'bg-gradient-to-b from-slate-50/50 to-white hover:bg-white hover:border-slate-300 border-slate-100 shadow-sm'
                 }`}
               >
-                {/* Micro Ambient Hover Glow behind item */}
-                <div className={`absolute -bottom-8 -right-8 w-16 h-16 rounded-full blur-xl pointer-events-none opacity-0 group-hover:opacity-25 transition-opacity duration-500 ${weather.accent.split(' ')[0].replace('text', 'bg')}`} />
-
-                {/* Date Labels Layout */}
-                <div className="text-center space-y-0.5 w-full z-10">
-                  <h4 className="font-bold text-sm tracking-tight text-current/90 group-hover:text-current transition-colors duration-300 truncate px-0.5">
-                    {dateObj.toLocaleDateString('en-US', { weekday: 'long' })}
+                {/* Micro Ambient Glow Background inside Card */}
+                <div className={`absolute inset-0 bg-gradient-to-b ${weather.gradient} opacity-100 pointer-events-none transition-opacity duration-500`} />
+                <div className={`absolute -bottom-10 -right-10 w-16 h-16 rounded-full blur-2xl pointer-events-none opacity-0 group-hover:opacity-30 transition-opacity duration-500 ${weather.accent.split(' ')[0].replace('text', 'bg')}`} />
+                
+                {/* Date Layout */}
+                <div className="text-center space-y-0.5 w-full z-10 relative">
+                  <h4 className={`font-bold text-xs tracking-tight transition-colors duration-300 truncate ${
+                    isToday ? 'text-indigo-500 dark:text-indigo-400 text-sm' : 'text-current opacity-90'
+                  }`}>
+                    {isToday ? 'Today' : dateObj.toLocaleDateString('en-US', { weekday: 'short' })}
                   </h4>
-                  {/* UPDATED: Month/Day label color changed to vibrant ocean cyan */}
-                  <p className={`text-[11px] font-bold tracking-wider uppercase ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
+                  <p className={`text-[9px] font-bold tracking-widest uppercase opacity-50`}>
                     {dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </p>
                 </div>
 
-                {/* Floating Pure Weather Icon Aura */}
-                {/* UPDATED: Increased image frame size to w-28 h-28 for higher impact layout */}
+                {/* Weather Icon Frame (Slightly downscaled to save grid height space) */}
                 <div className="my-2 relative flex items-center justify-center z-10">
-                  <div className="absolute w-20 h-20 rounded-full bg-current/[0.02] blur-md pointer-events-none transition-transform duration-500 group-hover:scale-130" />
+                  <div className="absolute w-12 h-12 rounded-full bg-current/[0.01] blur-md pointer-events-none transition-all duration-500 group-hover:scale-120 group-hover:bg-current/[0.03]" />
                   <img
                     src={`https://openweathermap.org/img/wn/${day.weather?.[0]?.icon}@4x.png`}
-                    className="w-28 h-28 object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.1)] relative z-10 transition-transform duration-500 group-hover:scale-105"
-                    alt="Forecast condition icon"
+                    className="w-16 h-16 object-contain filter drop-shadow-[0_8px_10px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_8px_16px_rgba(0,0,0,0.3)] relative z-10 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2"
+                    alt={day.weather?.[0]?.description || "Weather outlook"}
                   />
                 </div>
 
-                {/* Temperature Range Presentation Segment */}
-                <div className="w-full text-center space-y-3.5 z-10">
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-xl font-bold tracking-tight font-sans">
-                      {Math.round(day.temp?.max ?? day.main?.temp_max ?? 0)}°
-                    </span>
-                    <span className={`text-sm font-light opacity-35 ${isDark ? 'text-white' : 'text-slate-500'}`}>
-                      {Math.round(day.temp?.min ?? day.main?.temp_min ?? 0)}°
-                    </span>
+                {/* Temperature & Details Block */}
+                <div className="w-full text-center space-y-3 z-10 relative">
+                  
+                  {/* Temperature Readout */}
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center font-bold text-base tracking-tight">
+                      <span>{maxTemp}°</span>
+                    </div>
+                    <div className="h-2.5 w-[1px] bg-current/10" />
+                    <div className="flex items-center text-xs font-medium opacity-40">
+                      <span>{minTemp}°</span>
+                    </div>
                   </div>
 
-                  {/* Clean Proportional High-low Bar */}
-                  <div className={`h-1 rounded-full overflow-hidden w-14 mx-auto ${isDark ? 'bg-white/10' : 'bg-slate-200/70'}`}>
+                  {/* Horizontal Thermometer Progress Bar Indicator */}
+                  <div className="relative w-12 h-1 mx-auto rounded-full overflow-hidden bg-slate-500/10 backdrop-blur-sm">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 group-hover:scale-x-105 ${weather.accent.split(' ')[0].replace('text', 'bg')}`}
+                      className={`h-full rounded-full transition-all duration-700 ease-out ${weather.accent.split(' ')[0].replace('text', 'bg')}`}
                       style={{
-                        width: `${Math.max(25, Math.min(100, (day.temp?.max ?? day.main?.temp_max ?? 0) * 2.5))}%`,
+                        width: `${Math.max(30, Math.min(100, ((maxTemp + 20) / 60) * 100))}%`,
+                        transformOrigin: 'left'
                       }}
                     />
                   </div>
 
-                  {/* Text Description Badge */}
-                  <span className={`text-[10px] uppercase font-bold tracking-widest block truncate max-w-full px-2.5 py-1 rounded-lg border border-solid opacity-95 transition-all duration-300 shadow-sm ${weather.accent}`}>
+                  {/* Weather Condition Badge */}
+                  <span className={`text-[8px] uppercase font-black tracking-widest block truncate max-w-full px-2 py-1 rounded-lg border transition-all duration-300 shadow-sm font-mono ${weather.accent}`}>
                     {day.weather?.[0]?.main}
                   </span>
                 </div>

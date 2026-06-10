@@ -5,6 +5,7 @@ import {
   Moon,
   History,
   Trash2,
+  Cpu,
 } from "lucide-react";
 
 import { weatherApi } from "./services/weatherApi";
@@ -14,8 +15,8 @@ import SearchBar from "./components/SearchBar";
 import WeatherCard from "./components/WeatherCard";
 import WeatherDetails from "./components/WeatherDetails";
 import ForecastList from "./components/ForecastList";
+import logo from './assets/image.png';
 
-// Premium dense star field mapping with variant depth, scale, and twinkling frequencies
 const STAR_MAP = [
   { top: "5%", left: "8%", delay: "0s", size: "1px" },
   { top: "12%", left: "18%", delay: "1.2s", size: "2px" },
@@ -35,7 +36,6 @@ const STAR_MAP = [
   { top: "38%", left: "82%", delay: "0.5s", size: "2px" }
 ];
 
-// Premium snowfall offset layout configuration
 const SNOW_MAP = [
   { left: "5%", size: "4px", delay: "0s", duration: "8s", blur: "1px" },
   { left: "15%", size: "6px", delay: "2s", duration: "11s", blur: "2px" },
@@ -49,13 +49,28 @@ const SNOW_MAP = [
   { left: "95%", size: "4px", delay: "1.1s", duration: "9s", blur: "1px" }
 ];
 
-// Premium freezing ice/sleet shard mapping
 const ICE_MAP = [
   { left: "10%", length: "14px", delay: "0.2s", duration: "1.8s" },
   { left: "30%", length: "22px", delay: "1.1s", duration: "1.4s" },
   { left: "52%", length: "16px", delay: "0.5s", duration: "2.2s" },
   { left: "75%", length: "25px", delay: "1.6s", duration: "1.6s" },
   { left: "90%", length: "18px", delay: "0.8s", duration: "2.0s" }
+];
+
+const RAIN_MAP = [
+  { left: "4%", height: "25px", opacity: "0.4", duration: "1.2s", delay: "0s" },
+  { left: "12%", height: "35px", opacity: "0.6", duration: "0.9s", delay: "0.4s" },
+  { left: "19%", height: "20px", opacity: "0.3", duration: "1.5s", delay: "0.2s" },
+  { left: "28%", height: "40px", opacity: "0.7", duration: "0.8s", delay: "0.7s" },
+  { left: "36%", height: "30px", opacity: "0.5", duration: "1.1s", delay: "0.1s" },
+  { left: "44%", height: "22px", opacity: "0.4", duration: "1.3s", delay: "0.5s" },
+  { left: "52%", height: "38px", opacity: "0.8", duration: "0.85s", delay: "0.3s" },
+  { left: "61%", height: "25px", opacity: "0.3", duration: "1.4s", delay: "0.9s" },
+  { left: "70%", height: "45px", opacity: "0.6", duration: "0.75s", delay: "0.2s" },
+  { left: "78%", height: "28px", opacity: "0.5", duration: "1.15s", delay: "0.6s" },
+  { left: "85%", height: "32px", opacity: "0.4", duration: "1.0s", delay: "0.1s" },
+  { left: "93%", height: "22px", opacity: "0.3", duration: "1.6s", delay: "0.4s" },
+  { left: "98%", height: "38px", opacity: "0.7", duration: "0.9s", delay: "0.1s" }
 ];
 
 export default function App() {
@@ -76,8 +91,8 @@ export default function App() {
       if (history) {
         setSearchHistory(JSON.parse(history));
       }
-    } catch (error) {
-      console.warn("Failed to load history:", error);
+    } catch (err) {
+      console.warn("Failed to load history:", err);
     }
     loadWeatherData(currentCity);
   }, [unit]);
@@ -100,8 +115,8 @@ export default function App() {
     setSearchHistory([]);
     try {
       localStorage.removeItem("weather_search_history");
-    } catch (error) {
-      console.warn(error);
+    } catch (err) {
+      console.warn(err);
     }
   };
 
@@ -113,8 +128,8 @@ export default function App() {
       const updated = [cityName, ...filtered].slice(0, 5);
       try {
         localStorage.setItem("weather_search_history", JSON.stringify(updated));
-      } catch (error) {
-        console.warn("Failed to save history:", error);
+      } catch (err) {
+        console.warn("Failed to save history:", err);
       }
       return updated;
     });
@@ -129,14 +144,14 @@ export default function App() {
       setCurrentCity(weatherData.name);
       saveToHistory(weatherData.name);
 
-      const fontcastData = await weatherApi.getForecastByCoords(
+      const forecastData = await weatherApi.getForecastByCoords(
         weatherData.coord.lat,
         weatherData.coord.lon,
         unit
       );
-      setForecast(fontcastData);
-    } catch (error) {
-      setError(error.message || "Failed to load weather data.");
+      setForecast(forecastData);
+    } catch (err) {
+      setError(err.message || "Failed to load weather data.");
     } finally {
       if (triggerLoader) setLoading(false);
     }
@@ -158,36 +173,29 @@ export default function App() {
     }
     if (condition.includes("snow")) {
       if (description.includes("light")) {
-        return "from-slate-900 via-slate-950 to-indigo-950/40 text-slate-200";
+        return "from-slate-950 via-slate-900 to-sky-950 text-slate-200";
       }
-      return "from-zinc-900 via-slate-900 to-indigo-950 text-white";
+      return "from-neutral-950 via-slate-900 to-indigo-950 text-white";
     }
-    if (condition.includes("rain")) {
+    if (condition.includes("rain") || condition.includes("drizzle") || condition.includes("thunderstorm")) {
       return "from-slate-950 via-slate-900 to-blue-950/70 text-slate-100";
     }
     return "from-slate-950 via-indigo-950 to-slate-900 text-white";
   };
 
-  // Weather condition string safety evaluations
   const mainCondition = weather?.weather?.[0]?.main?.toLowerCase() || "";
   const descCondition = weather?.weather?.[0]?.description?.toLowerCase() || "";
 
   const isDark = themeMode === "dark";
-
-  const isRainy = themeMode === "dark" && mainCondition.includes("rain") && !descCondition.includes("freezing");
   
-  // Refined snow evaluations splitting heavy and light states
-  const isSnowy = themeMode === "dark" && mainCondition.includes("snow");
+  const isRainy = (mainCondition.includes("rain") || mainCondition.includes("drizzle") || mainCondition.includes("thunderstorm")) && !descCondition.includes("freezing");
+  const isSnowy = mainCondition.includes("snow");
   const isLightSnow = isSnowy && descCondition.includes("light");
-  const isHeavySnow = isSnowy && !descCondition.includes("light");
-
-  // Freezing Ice / Sleet evaluations
-  const isIcy = themeMode === "dark" && (mainCondition.includes("ice") || descCondition.includes("freezing") || descCondition.includes("sleet") || descCondition.includes("hail"));
+  const isIcy = (mainCondition.includes("ice") || descCondition.includes("freezing") || descCondition.includes("sleet") || descCondition.includes("hail"));
 
   return (
     <div className={`min-h-screen relative overflow-hidden transition-all duration-1000 bg-gradient-to-b ${getAmbientClass()}`}>
       
-      {/* Top-Grade Atmospheric Keyframe Animations */}
       <style>{`
         @keyframes drift {
           0% { transform: translateX(-40%); }
@@ -205,23 +213,27 @@ export default function App() {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-8px); }
         }
-        @keyframes fall {
-          0% { transform: translateY(-120px) translateX(0); opacity: 0; }
-          10% { opacity: 0.7; }
-          90% { opacity: 0.7; }
-          100% { transform: translateY(105vh) translateX(30px); opacity: 0; }
+        @keyframes fallRain {
+          0% { transform: translateY(-150px) skewX(-10deg); opacity: 0; }
+          20% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { transform: translateY(110%) skewX(-10deg); opacity: 0; }
         }
         @keyframes fallSnow {
           0% { transform: translateY(-20px) translateX(0) rotate(0deg); opacity: 0; }
           15% { opacity: 0.8; }
           85% { opacity: 0.8; }
-          100% { transform: translateY(105vh) translateX(45px) rotate(360deg); opacity: 0; }
+          100% { transform: translateY(110%) translateX(45px) rotate(360deg); opacity: 0; }
         }
         @keyframes fallIce {
           0% { transform: translateY(-40px) translateX(0) skewX(-5deg); opacity: 0; }
           10% { opacity: 0.75; }
           90% { opacity: 0.75; }
-          100% { transform: translateY(105vh) translateX(15px) skewX(-5deg); opacity: 0; }
+          100% { transform: translateY(110%) translateX(15px) skewX(-5deg); opacity: 0; }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
         }
         .animate-drift-slow { animation: drift 90s linear infinite; }
         .animate-drift-med { animation: drift 60s linear infinite; }
@@ -229,15 +241,14 @@ export default function App() {
         .animate-twinkle { animation: twinkle 3.5s ease-in-out infinite; }
         .animate-shimmer { animation: oceanShimmer 7s ease-in-out infinite; }
         .animate-orb { animation: floatOrb 5s ease-in-out infinite; }
-        .animate-fall { animation: fall 2.5s linear infinite; }
+        .animate-rain-stream { animation: fallRain linear infinite; }
         .animate-snow { animation: fallSnow linear infinite forwards; }
         .animate-ice { animation: fallIce linear infinite; }
+        .animate-pulse-glow { animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
       `}</style>
 
       {/* Dynamic Scenery Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden">
-        
-        {/* Deep Field Star System (Visible strictly on Dark Mode) */}
         {isDark && (
           <div className="absolute inset-0 transition-opacity duration-1000">
             {STAR_MAP.map((star, i) => (
@@ -256,16 +267,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Cinematic Thick Volumetric Clouds Layer */}
+        {/* Cinematic Clouds */}
         <div className="absolute inset-0 pointer-events-none z-10">
           <div className="absolute top-[8%] left-0 w-[650px] h-36 opacity-30 dark:opacity-20 blur-2xl bg-gradient-to-r from-transparent via-slate-400 to-transparent animate-drift-slow" style={{ animationDelay: '-20s' }} />
-          
           <div className="absolute top-[14%] left-0 flex items-end animate-drift-med opacity-65 dark:opacity-40 filter drop-shadow-[0_15px_15px_rgba(0,0,0,0.3)]">
             <div className={`w-32 h-24 rounded-full blur-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`} />
             <div className={`w-48 h-32 rounded-full -ml-12 blur-sm relative ${isDark ? 'bg-slate-700 shadow-[inset_0_8px_12px_rgba(255,255,255,0.05)]' : 'bg-amber-50 shadow-[inset_0_-8px_12px_rgba(251,191,36,0.2)]'}`} />
             <div className={`w-40 h-28 rounded-full -ml-16 blur-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`} />
           </div>
-
           <div className="absolute top-[24%] left-0 flex items-end animate-drift-fast opacity-50 dark:opacity-25 filter drop-shadow-[0_20px_20px_rgba(0,0,0,0.4)]" style={{ animationDelay: '-12s' }}>
             <div className={`w-44 h-20 rounded-full blur-md ${isDark ? 'bg-neutral-800' : 'bg-amber-100'}`} />
             <div className={`w-64 h-28 rounded-full -ml-16 blur-md ${isDark ? 'bg-slate-900' : 'bg-white'}`} />
@@ -273,7 +282,7 @@ export default function App() {
           </div>
         </div>
         
-        {/* Cinematic Yellow Moonlight (Dark) / Radiating Sunlight (Light) */}
+        {/* Sun/Moon Orb */}
         <div
           className={`absolute top-16 right-12 md:top-24 md:right-36 rounded-full transition-all duration-1000 ease-in-out animate-orb ${
             isDark
@@ -288,12 +297,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* Dynamic Sea Glow/Reflection Horizon Line */}
+        {/* Horizon and Terrain lines */}
         <div className={`absolute bottom-28 left-0 right-0 h-[3px] transition-all duration-1000 z-10 ${
           isDark ? "bg-amber-200/20 shadow-[0_0_25px_3px_rgba(253,230,138,0.3)]" : "bg-yellow-300/40 shadow-[0_0_35px_5px_rgba(251,191,36,0.4)]"
         }`} />
 
-        {/* Structural Mountain Layer */}
         <div className={`absolute bottom-24 left-0 right-0 h-56 transition-all duration-1000 ${isDark ? "opacity-60" : "opacity-45"}`}>
           <div
             className={`absolute inset-0 bg-gradient-to-b transition-all duration-1000 ${
@@ -310,7 +318,7 @@ export default function App() {
           />
         </div>
 
-        {/* Dense Pine Forest Silhouette Layer */}
+        {/* Forest Outline */}
         <div className={`absolute bottom-24 left-0 right-0 h-16 transition-all duration-1000 z-10 ${isDark ? "opacity-75" : "opacity-55"}`}>
           <div
             className={`absolute inset-0 bg-gradient-to-b transition-all duration-1000 ${
@@ -327,7 +335,7 @@ export default function App() {
           />
         </div>
 
-        {/* Sea Layer with active shifting light reflections */}
+        {/* Shimmering Sea Floor */}
         <div className={`absolute bottom-0 left-0 right-0 h-28 border-t transition-all duration-1000 z-10 ${
           isDark ? "bg-gradient-to-b from-slate-900 via-slate-950 to-black border-white/5" : "bg-gradient-to-b from-sky-600 via-indigo-800 to-slate-950 border-sky-400/20"
         }`}>
@@ -337,18 +345,26 @@ export default function App() {
         </div>
       </div>
 
-      {/* Falling Rain Overlay */}
+      {/* Precipitation Overlays */}
       {isRainy && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
-          <div className="absolute inset-0 opacity-40">
-            <div className="absolute top-0 left-1/4 w-[1px] h-20 bg-gradient-to-b from-transparent to-white/60 animate-fall" />
-            <div className="absolute top-0 left-2/4 w-[1.5px] h-24 bg-gradient-to-b from-transparent to-white/70 animate-fall [animation-delay:0.8s]" />
-            <div className="absolute top-0 left-3/4 w-[1px] h-16 bg-gradient-to-b from-transparent to-white/50 animate-fall [animation-delay:0.1s]" />
-          </div>
+          {RAIN_MAP.map((drop, idx) => (
+            <div
+              key={idx}
+              className="absolute bg-gradient-to-b from-transparent via-blue-200/50 to-white/70 animate-rain-stream"
+              style={{
+                left: drop.left,
+                height: drop.height,
+                width: "1px",
+                opacity: drop.opacity,
+                animationDuration: drop.duration,
+                animationDelay: drop.delay,
+              }}
+            />
+          ))}
         </div>
       )}
 
-      {/* Dynamic Falling Snow Overlay (Adapts density for Light Snow vs Regular/Heavy Snow) */}
       {isSnowy && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
           {SNOW_MAP.filter((_, idx) => !isLightSnow || idx % 2 === 0).map((flake, idx) => (
@@ -361,7 +377,7 @@ export default function App() {
                 width: isLightSnow ? "3px" : flake.size,
                 height: isLightSnow ? "3px" : flake.size,
                 animationDelay: flake.delay,
-                animationDuration: isLightSnow ? "14s" : flake.duration, // Slower glide for light snow
+                animationDuration: isLightSnow ? "14s" : flake.duration,
                 filter: flake.blur !== "0px" ? `blur(${flake.blur})` : "none"
               }}
             />
@@ -369,7 +385,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Freezing Shimmering Ice Overlay */}
       {isIcy && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
           {ICE_MAP.map((shard, idx) => (
@@ -389,82 +404,104 @@ export default function App() {
         </div>
       )}
 
-      {/* Primary UI Application Container */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-10 min-h-screen flex flex-col justify-between">
+      {/* Main Layout Layer */}
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 min-h-screen flex flex-col justify-between">
         <div>
-          {/* Enhanced Header Design */}
-          <header className={`flex justify-between items-center mb-8 border-b pb-5 backdrop-blur-[2px] transition-all duration-300 ${isDark ? "border-white/10" : "border-slate-300/80"}`}>
-            <div className="flex items-center gap-3.5">
-              <div className={`p-2.5 rounded-2xl border shadow-md backdrop-blur-md transition-transform duration-500 hover:scale-105 ${
-                isDark ? "bg-white/10 border-white/20 text-amber-300" : "bg-white/80 border-slate-300/60 text-slate-900"
-              }`}>
-                <CloudRain size={26} className="animate-pulse" />
+          
+          {/* Header Module */}
+          <header className={`mb-8 p-4 md:p-5 rounded-3xl border backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] border-t-white/20 transition-all duration-500 ${
+            isDark 
+              ? "bg-slate-900/40 border-white/5 shadow-black/40" 
+              : "bg-white/40 border-slate-200/60 shadow-slate-200/50"
+          }`}>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              
+              {/* Branding Stack */}
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className={`relative p-0.5 rounded-2xl border shadow-inner transition-transform duration-500 hover:rotate-3 group ${
+                  isDark ? "bg-gradient-to-b from-white/10 to-transparent border-white/10" : "bg-gradient-to-b from-white/80 to-slate-200/30 border-slate-300/40"
+                }`}>
+                  <img src={logo} alt="The Khmer Weather Logo" className="w-14 h-14 md:w-16 md:h-16 object-cover rounded-xl" />
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-indigo-400 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-all duration-300" />
+                </div>
+                
+                <div className="space-y-0.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className={`text-2xl md:text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${
+                      isDark ? "from-white via-slate-100 to-slate-300" : "from-slate-950 via-slate-900 to-slate-800"
+                    }`}>
+                      The Khmer Weather
+                    </h1>
+                    <div className="relative flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500/10 to-orange-600/10 border border-orange-500/30 rounded-full shadow-sm animate-pulse-glow">
+                      <Cpu size={10} className="text-orange-500" />
+                      <span className="text-orange-500 text-[9px] font-black tracking-widest uppercase">FAST</span>
+                    </div>
+                  </div>
+                  <p className={`text-[10px] md:text-xs tracking-wider uppercase opacity-80 ${isDark ? "text-cyan-400" : "text-indigo-600"}`}>
+                    helps users quickly check current conditions
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <h1 className={`text-2xl md:text-3xl font-black tracking-tight flex items-center ${isDark ? "text-white" : "text-slate-950"}`}>
-                  NIMBUS
-                  <span className="text-white text-[9px] font-black tracking-widest px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-md ml-2.5 shadow-sm">
-                    PRO
-                  </span>
-                </h1>
-                <p className={`text-[10px] md:text-xs font-medium tracking-wider uppercase mt-0.5 ${isDark ? "text-white/40" : "text-slate-600"}`}>
-                  Glassmorphism Weather Intelligence
-                </p>
+              {/* Functional Controls Layer */}
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10">
+                <div className={`hidden md:flex flex-col items-end text-right mr-2`}>
+                  <span className={`text-[10px] font-bold tracking-widest opacity-40 uppercase ${isDark ? "text-white" : "text-black"}`}>Dark-Mood</span>
+                  <span className={`text-xs font-black tracking-wide ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Operational</span>
+                </div>
+                
+                <button 
+                  onClick={toggleThemeMode} 
+                  className={`p-3.5 rounded-2xl border shadow-md backdrop-blur-md transition-all duration-300 active:scale-95 relative overflow-hidden group ${
+                    isDark 
+                      ? "bg-slate-950/40 border-white/10 text-amber-300 hover:bg-slate-900/60" 
+                      : "bg-white/90 border-slate-300/60 text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-tr transition-opacity duration-300 opacity-0 group-hover:opacity-100 ${
+                    isDark ? "from-amber-500/10 via-yellow-400/5 to-transparent" : "from-indigo-500/5 via-sky-400/10 to-transparent"
+                  }`} />
+                  <div className="relative z-10 transition-transform duration-500 group-hover:rotate-45">
+                    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                  </div>
+                </button>
               </div>
+
             </div>
-
-            <button
-              onClick={toggleThemeMode}
-              className={`p-3 rounded-2xl border shadow-md backdrop-blur-md transition-all duration-300 active:scale-95 hover:shadow-lg ${
-                isDark 
-                  ? "bg-white/10 border-white/10 text-amber-300 hover:bg-white/15" 
-                  : "bg-white/90 border-slate-300/70 text-slate-950 hover:bg-slate-50"
-              }`}
-            >
-              {isDark ? <Sun size={19} /> : <Moon size={19} />}
-            </button>
           </header>
 
-          {/* Search Management Module */}
+          {/* Search Module */}
           <div className="max-w-3xl mx-auto mb-6">
             <SearchBar onSearch={handleSearch} isLoading={loading} themeMode={themeMode} />
           </div>
 
-          {/* Redesigned Search History Badges */}
+          {/* History Badges */}
           {searchHistory.length > 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl mx-auto mb-10 px-2 animate-fadeIn">
               <span className={`text-[11px] font-bold uppercase tracking-wider flex items-center mr-1 ${isDark ? "text-white/40" : "text-slate-600"}`}>
-                <History size={12} className="inline mr-1.5 opacity-80" />
-                Recent:
+                <History size={12} className="inline mr-1.5 opacity-80" /> Recent:
               </span>
-
               {searchHistory.map((city, index) => (
                 <button
                   key={index}
                   onClick={() => loadWeatherData(city)}
                   className={`px-3.5 py-1.5 border rounded-full text-xs font-bold tracking-wide transition-all duration-200 backdrop-blur-md active:scale-95 shadow-sm ${
-                    isDark 
-                      ? "bg-white/5 border-white/5 text-white hover:bg-white/10 hover:border-white/10" 
-                      : "bg-white/80 border-slate-200 text-slate-900 hover:bg-white hover:border-slate-300"
+                    isDark ? "bg-white/5 border-white/5 text-white hover:bg-white/10 hover:border-white/10" : "bg-white/80 border-slate-200 text-slate-900 hover:bg-white hover:border-slate-300"
                   }`}
                 >
                   {city}
                 </button>
               ))}
-
-              <button 
-                onClick={handleClearHistory} 
-                className="p-2 bg-rose-500/90 hover:bg-rose-600 text-white rounded-full transition-all duration-200 active:scale-90 shadow-sm ml-1"
-                title="Clear History"
-              >
+              <button onClick={handleClearHistory} className="p-2 bg-rose-500/90 hover:bg-rose-600 text-white rounded-full transition-all duration-200 active:scale-90 shadow-sm ml-1" title="Clear History">
                 <Trash2 size={12} />
               </button>
             </div>
           )}
 
-          {/* Responsive Dashboard Layout Frame */}
-          <main className="w-full">
+          {/* ========================================================================= */}
+          {/* RE-DESIGNED DASHBOARD FRAMEWORK (Centered & Smaller Layout) */}
+          {/* ========================================================================= */}
+          <main className="w-full flex justify-center px-1 md:px-4">
             {loading ? (
               <div className="min-h-[40vh] flex items-center justify-center">
                 <Loading themeMode={themeMode} />
@@ -474,44 +511,44 @@ export default function App() {
                 <Error message={error} onRetry={() => loadWeatherData(currentCity)} themeMode={themeMode} />
               </div>
             ) : (
-              <div className="space-y-6 animate-fadeIn">
-                {/* Upper Metrics Grid Splitting Main Card & Auxiliary Details */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+              /* Max width explicitly locked down to 5xl to shrink cards down on large desktops */
+              <div className="w-full max-w-5xl space-y-6 animate-fadeIn">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+                  
+                  {/* Weather Card Wrapper */}
                   <div className="lg:col-span-1 flex flex-col">
-                    <div className="h-full backdrop-blur-sm rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div className="h-full backdrop-blur-md rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
                       <WeatherCard weather={weather} unit={unit} onToggleUnit={handleToggleUnit} themeMode={themeMode} />
                     </div>
                   </div>
                   
+                  {/* Weather Details Wrapper */}
                   <div className="lg:col-span-2 flex flex-col">
-                    <div className="h-full backdrop-blur-sm rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div className="h-full backdrop-blur-md rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
                       <WeatherDetails weather={weather} unit={unit} themeMode={themeMode} />
                     </div>
                   </div>
-                </div>
 
-                {/* Lower Timeline Frame */}
-                <div className="w-full backdrop-blur-sm rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl">
+                </div>
+                
+                {/* 7-Day Forecast Wrapper */}
+                <div className="w-full backdrop-blur-md rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
                   <ForecastList forecastData={forecast} unit={unit} themeMode={themeMode} />
                 </div>
               </div>
             )}
           </main>
+          {/* ========================================================================= */}
+
         </div>
 
-        {/* Minimal Subtle Footer branding */}
-        <footer className={`mt-16 pt-6 border-t backdrop-blur-[1px] transition-colors duration-1000 ${
-          isDark ? "border-white/5 text-white/40" : "border-slate-200 text-slate-500"
-        }`}>
+        {/* Footer */}
+        <footer className={`mt-16 pt-6 border-t backdrop-blur-[1px] transition-colors duration-1000 ${isDark ? "border-white/5 text-white/40" : "border-slate-200 text-slate-500"}`}>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium tracking-wider uppercase">
-            <p className="select-none">
-              &copy; {new Date().getFullYear()} NIMBUS PRO. All rights reserved.
-            </p>
+            <p className="select-none">&copy; {new Date().getFullYear()} The Khmer Weather. All rights reserved.</p>
             <div className="flex items-center gap-1.5">
               <span>Created by</span>
-              <span className={`font-bold tracking-widest ${isDark ? "text-amber-300" : "text-slate-900"}`}>
-                SOKKHEN
-              </span>
+              <span className={`font-bold tracking-widest ${isDark ? "text-amber-300" : "text-slate-900"}`}>SOKKHEN</span>
               <span className="opacity-30">|</span>
               <span className="text-[10px] opacity-70 select-none">Powered by OpenWeather</span>
             </div>
