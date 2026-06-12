@@ -74,7 +74,7 @@ export default function WeatherCard({ weather, unit, onToggleUnit, themeMode }) 
       <div className="grid grid-cols-13 gap-4 items-center my-auto py-6">
         
         {/* Bold Typography Temperature Readout */}
-        <div className="col-span-7 space-y-1">
+        <div className="col-span-8 space-y-1">
           <div className="relative inline-block select-all">
             <span className="text-6xl md:text-7xl font-bold tracking-tight block leading-none font-sans">
               {formatTemp(weather.main.temp)}
