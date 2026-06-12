@@ -71,7 +71,7 @@ export default function WeatherCard({ weather, unit, onToggleUnit, themeMode }) 
       </div>
 
       {/* SECTION 2: Hero Visual & Main Presentation Split */}
-      <div className="grid grid-cols-12 gap-4 items-center my-auto py-6">
+      <div className="grid grid-cols-13 gap-4 items-center my-auto py-6">
         
         {/* Bold Typography Temperature Readout */}
         <div className="col-span-7 space-y-1">
